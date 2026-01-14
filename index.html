@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICT Coaching Center — Student Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* --- CSS Variables & Theme Setup --- */
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1022;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.12);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.66);
+      --muted2: rgba(255,255,255,.50);
+      --good: #22c55e;
+      --warn: #f59e0b;
+      --bad: #ef4444;
+      --brand: #7c3aed;
+      --brand2: #06b6d4;
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+    }
+    html,body{ height:100%; }
+    body{
+      background:
+        radial-gradient(1200px 800px at 15% 10%, rgba(124,58,237,.35), transparent 55%),
+        radial-gradient(900px 700px at 85% 25%, rgba(6,182,212,.25), transparent 55%),
+        radial-gradient(900px 700px at 60% 90%, rgba(34,197,94,.12), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      font-feature-settings: "ss01" 1, "ss02" 1;
+    }
+
+    /* --- Glassmorphism Components --- */
+    .glass{
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: var(--shadow);
+    }
+    .glass2{
+      background: var(--card2);
+      border: 1px solid var(--stroke);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    /* --- Interactive Elements --- */
+    .btn{
+      border: 1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      transition: transform .12s ease, background .2s ease, border-color .2s ease;
+      color: white;
+    }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.25); }
+    .btn:active{ transform: translateY(0px); }
+    
+    /* Button Variants */
+    .btnPrimary{ border: 1px solid rgba(124,58,237,.5); background: linear-gradient(180deg, rgba(124,58,237,.55), rgba(124,58,237,.20)); }
+    .btnDanger{ border: 1px solid rgba(239,68,68,.55); background: linear-gradient(180deg, rgba(239,68,68,.55), rgba(239,68,68,.18)); }
+    .btnGood{ border: 1px solid rgba(34,197,94,.55); background: linear-gradient(180deg, rgba(34,197,94,.50), rgba(34,197,94,.16)); }
+
+    .chip, .badge, .kbd{
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+    }
+    
+    .badge{
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.22rem .55rem;
+      border-radius:999px;
+      font-size:.75rem;
+      white-space: nowrap;
+    }
+    .dot{ width:.45rem; height:.45rem; border-radius:999px; }
+
+    /* --- Form Elements --- */
+    .input, .select, .textarea{
+      width:100%;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(255,255,255,.92);
+      border-radius: .75rem;
+      padding: .65rem .75rem;
+      outline: none;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    .input:focus, .select:focus, .textarea:focus{
+      border-color: rgba(124,58,237,.7);
+      box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+    }
+    .select option{ background: #0b1022; color: rgba(255,255,255,.92); }
+
+    /* --- Table --- */
+    .tableWrap{ overflow:auto; border-radius: 1rem; }
+    table{ width: 100%; border-collapse: separate; border-spacing: 0; min-width: 1050px; }
+    thead th{
+      position: sticky; top: 0;
+      background: rgba(12,18,40,.88);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      font-weight: 600;
+      color: rgba(255,255,255,.78);
+      text-align: left;
+      padding: .75rem .75rem;
+      white-space: nowrap;
+      z-index: 1;
+    }
+    tbody td{
+      padding: .75rem .75rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      vertical-align: top;
+    }
+    tbody tr:hover td{ background: rgba(255,255,255,.04); }
+
+    /* --- Modals & Toasts --- */
+    .modalBg{
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 50;
+    }
+    .modal{
+      width: min(980px, 100%);
+      max-height: 92vh;
+      overflow:auto;
+      border-radius: 1.25rem;
+    }
+    .fadeIn{ animation: fadeIn .18s ease forwards; opacity: 0; }
+    @keyframes fadeIn{ to{ opacity: 1; } }
+
+    .toastWrap{
+      position: fixed; right: 1rem; bottom: 1rem; z-index: 60;
+      display:flex; flex-direction:column; gap:.5rem; pointer-events:none;
+    }
+    .toast{
+      pointer-events:auto; max-width: 360px;
+      border-radius: 1rem; padding: .8rem .9rem;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(12,18,40,.86);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      animation: pop .18s ease;
+    }
+    @keyframes pop{
+      from{ transform: translateY(8px); opacity: 0; }
+      to{ transform: translateY(0); opacity: 1; }
+    }
+    
+    /* --- Utilities --- */
+    .muted{ color: var(--muted); }
+    .muted2{ color: var(--muted2); }
+    .srOnly{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    .miniBar{ height: .45rem; border-radius: 999px; background: rgba(255,255,255,.10); overflow:hidden; }
+    .miniBar > div{ height: 100%; border-radius: 999px; background: linear-gradient(90deg, rgba(124,58,237,.95), rgba(6,182,212,.95)); width: 0%; transition: width .35s ease; }
+  </style>
+</head>
+<body>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    
+    <!-- Header Section -->
+    <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div class="flex items-start gap-3">
+        <div class="h-11 w-11 rounded-2xl glass2 flex items-center justify-center">
+          <div class="h-7 w-7 rounded-xl" style="background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(6,182,212,.9)); box-shadow: 0 16px 40px rgba(124,58,237,.25);"></div>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">ICT Coaching Center — Dashboard</h1>
+          <p class="muted text-sm mt-1">Students, fees, dues, payments, and inactive tracking. Data stays on this device (localStorage).</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnQuickAdd" class="btn btnPrimary px-3 py-2 rounded-xl text-sm font-medium">+ New Admission</button>
+        <button id="btnExport" class="btn px-3 py-2 rounded-xl text-sm font-medium">Export JSON</button>
+        <label class="btn px-3 py-2 rounded-xl text-sm font-medium cursor-pointer">
+          Import JSON
+          <input id="fileImport" type="file" accept="application/json" class="srOnly">
+        </label>
+        <button id="btnReset" class="btn btnDanger px-3 py-2 rounded-xl text-sm font-medium">Reset</button>
+      </div>
+    </header>
+
+    <!-- KPI Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mt-6">
+      <div class="glass rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="muted text-sm">Active Students</p>
+          <span class="badge"><span class="dot" style="background: var(--good)"></span>Active</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <div id="kpiActive" class="text-3xl font-semibold tracking-tight">0</div>
+          <div class="muted text-sm" id="kpiTotal">/ 0 total</div>
+        </div>
+        <div class="mt-3 miniBar"><div id="barActive"></div></div>
+      </div>
+
+      <div class="glass rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="muted text-sm">Total Outstanding</p>
+          <span class="badge"><span class="dot" style="background: var(--warn)"></span>Due</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <div id="kpiOutstanding" class="text-3xl font-semibold tracking-tight">৳0</div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="muted text-sm">Payments (Last 30 Days)</p>
+          <span class="badge"><span class="dot" style="background: var(--brand2)"></span>Cash/Online</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <div id="kpiPaid30" class="text-3xl font-semibold tracking-tight">৳0</div>
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="muted text-sm">Left / Inactive</p>
+          <span class="badge"><span class="dot" style="background: var(--bad)"></span>Inactive</span>
+        </div>
+        <div class="mt-2 flex items-baseline gap-2">
+          <div id="kpiInactive" class="text-3xl font-semibold tracking-tight">0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Table Section -->
+    <section class="glass rounded-2xl p-4 mt-6">
+      <div class="flex flex-col lg:flex-row gap-3 lg:items-end lg:justify-between">
+        <!-- Filters -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 flex-1">
+          <div>
+            <label class="muted text-xs">Search</label>
+            <input id="qSearch" class="input mt-1" placeholder="Name, ID, mobile..." />
+          </div>
+          <div>
+            <label class="muted text-xs">Status</label>
+            <select id="qStatus" class="select mt-1">
+              <option value="all">All</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive/Left</option>
+            </select>
+          </div>
+          <div>
+            <label class="muted text-xs">Admission Type</label>
+            <select id="qType" class="select mt-1">
+              <option value="all">All</option>
+              <option value="monthly">Monthly</option>
+              <option value="course">Course</option>
+            </select>
+          </div>
+          <div>
+            <label class="muted text-xs">Due</label>
+            <select id="qDue" class="select mt-1">
+              <option value="all">All</option>
+              <option value="due">Only Due</option>
+              <option value="clear">No Due</option>
+            </select>
+          </div>
+          <div>
+            <label class="muted text-xs">Sort</label>
+            <select id="qSort" class="select mt-1">
+              <option value="recent">Recently Added</option>
+              <option value="name">Name (A–Z)</option>
+              <option value="dueDesc">Outstanding (High → Low)</option>
+              <option value="idAsc">ID (Low → High)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <div class="flex flex-wrap gap-2">
+          <button id="btnMarkMonth" class="btn px-3 py-2 rounded-xl text-sm font-medium">+ Add Monthly Due (All Active)</button>
+          <button id="btnPaySelected" class="btn btnGood px-3 py-2 rounded-xl text-sm font-medium">Record Payment</button>
+        </div>
+      </div>
+
+      <div class="tableWrap mt-4">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:42px"><input id="chkAll" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10 align-middle" /></th>
+              <th>Student</th>
+              <th>Details</th>
+              <th>Fees & Dues</th>
+              <th>Outstanding</th>
+              <th>Status</th>
+              <th style="width: 240px">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between mt-4">
+        <p class="muted text-sm" id="resultCount">0 students</p>
+        <div class="flex items-center gap-2">
+          <button id="btnPrev" class="btn px-3 py-2 rounded-xl text-sm">Prev</button>
+          <span class="muted text-sm" id="pageInfo">Page 1</span>
+          <button id="btnNext" class="btn px-3 py-2 rounded-xl text-sm">Next</button>
+          <select id="pageSize" class="select w-28">
+            <option value="10">10 / page</option>
+            <option value="20" selected>20 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <footer class="mt-6 pb-8">
+      <div class="glass rounded-2xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <p class="text-sm font-medium">Local Storage Database</p>
+          <p class="muted text-sm mt-1">Data persists in your browser. Use Export for backup.</p>
+        </div>
+        <div class="muted text-xs flex items-center gap-2">
+          <span class="kbd">Ctrl</span> + <span class="kbd">K</span> to focus search
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- === Modals === -->
+
+  <!-- 1. Student Form Modal (Create/Update) -->
+  <div id="modalStudentBg" class="modalBg">
+    <div class="modal glass fadeIn">
+      <div class="p-4 sm:p-5 border-b border-white/10 flex items-start justify-between gap-3">
+        <div>
+          <h2 id="studentModalTitle" class="text-lg font-semibold tracking-tight">New Admission</h2>
+          <p class="muted text-sm mt-1">Fill details. ID is auto-generated.</p>
+        </div>
+        <button id="btnCloseStudentModal" class="btn px-3 py-2 rounded-xl text-sm">Close</button>
+      </div>
+
+      <form id="studentForm" class="p-4 sm:p-5">
+        <input type="hidden" id="f_id" />
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div>
+            <label class="muted text-xs">Admission Date</label>
+            <input id="f_admissionDate" type="date" class="input mt-1" required />
+          </div>
+          <div>
+            <label class="muted text-xs">Student Name</label>
+            <input id="f_name" class="input mt-1" placeholder="Full name" required />
+          </div>
+          <div>
+            <label class="muted text-xs">Mobile Number</label>
+            <input id="f_mobile" class="input mt-1" inputmode="numeric" placeholder="01XXXXXXXXX" required />
+          </div>
+
+          <div>
+            <label class="muted text-xs">Session</label>
+            <input id="f_session" class="input mt-1" placeholder="2025" />
+          </div>
+          <div>
+            <label class="muted text-xs">Exam Year</label>
+            <input id="f_examYear" class="input mt-1" inputmode="numeric" placeholder="2026" />
+          </div>
+          <div>
+            <label class="muted text-xs">Auto Generated ID</label>
+            <input id="f_studentId" class="input mt-1" disabled />
+          </div>
+
+          <div>
+            <label class="muted text-xs">Admission Type</label>
+            <select id="f_type" class="select mt-1" required>
+              <option value="monthly">Monthly basis</option>
+              <option value="course">Course</option>
+            </select>
+          </div>
+
+          <div id="wrapMonthlyFee">
+            <label class="muted text-xs">Monthly Fee (৳)</label>
+            <input id="f_monthlyFee" class="input mt-1" inputmode="decimal" placeholder="e.g. 800" />
+          </div>
+
+          <div id="wrapCourseFee" class="hidden">
+            <label class="muted text-xs">Course Fee Total (৳)</label>
+            <input id="f_courseFee" class="input mt-1" inputmode="decimal" placeholder="e.g. 5000" />
+          </div>
+
+          <div id="wrapCoursePaid" class="hidden">
+            <label class="muted text-xs">Course Paid (৳)</label>
+            <input id="f_coursePaid" class="input mt-1" inputmode="decimal" placeholder="e.g. 1000" />
+          </div>
+
+          <div id="wrapMonthlyDueCount">
+            <label class="muted text-xs">Monthly Due Count (months)</label>
+            <input id="f_monthlyDueCount" class="input mt-1" inputmode="numeric" placeholder="0" />
+          </div>
+
+          <div class="lg:col-span-2">
+            <label class="muted text-xs">Notes</label>
+            <textarea id="f_notes" class="textarea mt-1" rows="2" placeholder="Optional (batch time, institute, etc.)"></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div class="glass2 rounded-2xl p-4">
+            <p class="muted text-xs">Payment Setup</p>
+            <p class="text-sm font-medium mt-1">Initial Payment (Optional)</p>
+            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div class="sm:col-span-2">
+                <label class="muted text-xs">Amount (৳)</label>
+                <input id="f_initialPay" class="input mt-1" inputmode="decimal" placeholder="0" />
+              </div>
+              <div>
+                <label class="muted text-xs">Method</label>
+                <select id="f_initialMethod" class="select mt-1">
+                  <option value="Cash">Cash</option>
+                  <option value="bKash">bKash</option>
+                  <option value="Nagad">Nagad</option>
+                  <option value="Rocket">Rocket</option>
+                  <option value="Bank">Bank</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-2">
+              <label class="muted text-xs">Transaction/Reference</label>
+              <input id="f_initialRef" class="input mt-1" placeholder="Optional reference" />
+            </div>
+          </div>
+
+          <div class="glass2 rounded-2xl p-4 lg:col-span-2">
+            <p class="muted text-xs">Preview</p>
+            <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <p class="muted2 text-xs">Estimated Outstanding</p>
+                <p id="previewOutstanding" class="text-xl font-semibold mt-1">৳0</p>
+              </div>
+              <div>
+                <p class="muted2 text-xs">Status</p>
+                <p id="previewStatus" class="text-sm font-medium mt-1">Active</p>
+              </div>
+              <div>
+                <p class="muted2 text-xs">Type</p>
+                <p id="previewType" class="text-sm font-medium mt-1">Monthly</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="muted text-xs">
+            <span class="badge">Auto-save on submit</span>
+          </div>
+          <div class="flex flex-wrap gap-2 justify-end">
+            <button type="button" id="btnStudentDelete" class="btn btnDanger px-3 py-2 rounded-xl text-sm font-medium hidden">Delete</button>
+            <button type="submit" class="btn btnPrimary px-4 py-2 rounded-xl text-sm font-semibold">Save</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Payment Modal -->
+  <div id="modalPayBg" class="modalBg">
+    <div class="modal glass fadeIn" style="width:min(860px, 100%);">
+      <div class="p-4 sm:p-5 border-b border-white/10 flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold tracking-tight">Record Payment</h2>
+          <p class="muted text-sm mt-1">Add payments for selected students.</p>
+        </div>
+        <button id="btnClosePayModal" class="btn px-3 py-2 rounded-xl text-sm">Close</button>
+      </div>
+
+      <form id="payForm" class="p-4 sm:p-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="glass2 rounded-2xl p-4">
+            <p class="muted text-xs">Selected</p>
+            <div id="paySelectedList" class="mt-2 text-sm"></div>
+          </div>
+
+          <div class="glass2 rounded-2xl p-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="muted text-xs">Payment Date</label>
+                <input id="p_date" type="date" class="input mt-1" required />
+              </div>
+              <div>
+                <label class="muted text-xs">Method</label>
+                <select id="p_method" class="select mt-1">
+                  <option value="Cash">Cash</option>
+                  <option value="bKash">bKash</option>
+                  <option value="Nagad">Nagad</option>
+                  <option value="Rocket">Rocket</option>
+                  <option value="Bank">Bank</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="mt-2">
+              <label class="muted text-xs">Amount (৳)</label>
+              <input id="p_amount" class="input mt-1" inputmode="decimal" placeholder="e.g. 800" required />
+            </div>
+            <div class="mt-2">
+              <label class="muted text-xs">Reference / Note</label>
+              <input id="p_ref" class="input mt-1" placeholder="Transaction ID / note (optional)" />
+            </div>
+
+            <div class="mt-4 flex items-center justify-end gap-2">
+              <button type="submit" class="btn btnGood px-4 py-2 rounded-xl text-sm font-semibold">Save Payment</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Details Drawer -->
+  <div id="modalDetailsBg" class="modalBg">
+    <div class="modal glass fadeIn" style="width:min(980px, 100%);">
+      <div class="p-4 sm:p-5 border-b border-white/10 flex items-start justify-between gap-3">
+        <div>
+          <h2 id="detailsTitle" class="text-lg font-semibold tracking-tight">Student Details</h2>
+          <p id="detailsSubtitle" class="muted text-sm mt-1"></p>
+        </div>
+        <button id="btnCloseDetails" class="btn px-3 py-2 rounded-xl text-sm">Close</button>
+      </div>
+      <div class="p-4 sm:p-5">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div class="glass2 rounded-2xl p-4 lg:col-span-1">
+            <p class="muted text-xs">Profile</p>
+            <div class="mt-3 space-y-2 text-sm">
+              <div class="flex justify-between gap-3"><span class="muted">Name</span><span id="d_name" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">ID</span><span id="d_sid" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">Mobile</span><span id="d_mobile" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">Admission</span><span id="d_adm" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">Session</span><span id="d_session" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">Exam Year</span><span id="d_exam" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">Type</span><span id="d_type" class="font-medium text-right"></span></div>
+              <div class="flex justify-between gap-3"><span class="muted">Status</span><span id="d_status" class="font-medium text-right"></span></div>
+            </div>
+
+            <div class="mt-4 pt-4 border-t border-white/10">
+              <p class="muted text-xs">Outstanding</p>
+              <p id="d_outstanding" class="text-2xl font-semibold mt-1"></p>
+              <p id="d_dueMeta" class="muted2 text-xs mt-1"></p>
+            </div>
+
+            <div id="inactiveBox" class="mt-4 pt-4 border-t border-white/10 hidden">
+              <p class="muted text-xs">Inactive Details</p>
+              <p id="d_inactive" class="text-sm font-medium mt-1"></p>
+              <p id="d_inactiveReason" class="muted2 text-xs mt-1"></p>
+            </div>
+
+            <div class="mt-4 flex flex-wrap gap-2">
+              <button id="btnDetailsEdit" class="btn btnPrimary px-3 py-2 rounded-xl text-sm font-medium">Edit</button>
+              <button id="btnDetailsToggleStatus" class="btn px-3 py-2 rounded-xl text-sm font-medium">Toggle Active</button>
+              <button id="btnDetailsPay" class="btn btnGood px-3 py-2 rounded-xl text-sm font-medium">Record Payment</button>
+            </div>
+          </div>
+
+          <div class="glass2 rounded-2xl p-4 lg:col-span-2">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="muted text-xs">Payment History</p>
+              </div>
+              <button id="btnAddDueForThis" class="btn px-3 py-2 rounded-xl text-sm font-medium hidden">+ Add Monthly Due</button>
+            </div>
+
+            <div class="mt-3 tableWrap" style="border: 1px solid rgba(255,255,255,.10);">
+              <table style="min-width: 700px">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Method</th>
+                    <th>Reference</th>
+                    <th class="text-right">Amount</th>
+                    <th style="width:120px">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="paymentsTbody"></tbody>
+              </table>
+            </div>
+
+            <div class="mt-4">
+              <p class="muted text-xs">Notes</p>
+              <div id="d_notes" class="mt-2 text-sm whitespace-pre-wrap"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Inactive Modal -->
+  <div id="modalInactiveBg" class="modalBg">
+    <div class="modal glass fadeIn" style="width:min(680px, 100%);">
+      <div class="p-4 sm:p-5 border-b border-white/10 flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold tracking-tight">Mark Inactive / Left</h2>
+          <p class="muted text-sm mt-1">This helps track students who stopped attending.</p>
+        </div>
+        <button id="btnCloseInactive" class="btn px-3 py-2 rounded-xl text-sm">Close</button>
+      </div>
+
+      <form id="inactiveForm" class="p-4 sm:p-5">
+        <input type="hidden" id="i_studentId" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="muted text-xs">Inactive Date</label>
+            <input id="i_date" type="date" class="input mt-1" required />
+          </div>
+          <div>
+            <label class="muted text-xs">Reason</label>
+            <select id="i_reason" class="select mt-1">
+              <option value="Completed">Completed</option>
+              <option value="Left">Left</option>
+              <option value="Moved">Moved</option>
+              <option value="Financial">Financial</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="muted text-xs">Details (optional)</label>
+            <textarea id="i_details" class="textarea mt-1" rows="3" placeholder="Optional notes..."></textarea>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button type="submit" class="btn btnDanger px-4 py-2 rounded-xl text-sm font-semibold">Mark Inactive</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toastWrap" id="toastWrap"></div>
+
+  <script>
+    // ===== Utilities =====
+    const $ = (id) => document.getElementById(id);
+    const money = (n) => {
+      const x = Number(n || 0);
+      return "৳" + x.toLocaleString("en-BD", { maximumFractionDigits: 0 });
+    };
+    const todayStr = () => new Date().toISOString().slice(0,10);
+    const uid = () => "s_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+
+    function toast(msg, type="info"){
+      const wrap = $("toastWrap");
+      const t = document.createElement("div");
+      t.className = "toast";
+      const color = type==="good" ? "rgba(34,197,94,.95)" : type==="bad" ? "rgba(239,68,68,.95)" : type==="warn" ? "rgba(245,158,11,.95)" : "rgba(124,58,237,.95)";
+      t.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="mt-1 h-2.5 w-2.5 rounded-full" style="background:${color}; box-shadow: 0 0 0 4px rgba(255,255,255,.05)"></div>
+          <div class="text-sm">${escapeHtml(msg)}</div>
+        </div>
+      `;
+      wrap.appendChild(t);
+      setTimeout(()=>{ t.style.opacity="0"; t.style.transform="translateY(6px)"; t.style.transition="all .18s ease"; }, 2600);
+      setTimeout(()=> t.remove(), 2900);
+    }
+
+    function escapeHtml(str){
+      return String(str ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
+    }
+
+    function parseNum(v){
+      if(v===null || v===undefined) return 0;
+      const s = String(v).trim().replace(/,/g,"");
+      const n = Number(s);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    // ===== Storage & Data Layer =====
+    const STORAGE_KEY = "ict_dashboard_v1";
+    const META_KEY = "ict_dashboard_meta_v1";
+
+    function loadDB(){
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return { students: [] };
+      try { return JSON.parse(raw); } catch { return { students: [] }; }
+    }
+    function saveDB(db){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
+      localStorage.setItem(META_KEY, JSON.stringify({ updatedAt: new Date().toISOString() }));
+    }
+    function loadMeta(){
+      const raw = localStorage.getItem(META_KEY);
+      if(!raw) return null;
+      try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function nextStudentPublicId(db, admissionDate){
+      const year = (admissionDate || todayStr()).slice(0,4);
+      const prefix = `ICT-${year}-`;
+      const existing = db.students
+        .map(s => s.studentId)
+        .filter(x => typeof x === "string" && x.startsWith(prefix))
+        .map(x => parseInt(x.replace(prefix,""), 10))
+        .filter(n => Number.isFinite(n));
+      const next = (existing.length ? Math.max(...existing) + 1 : 1);
+      return prefix + String(next).padStart(4,"0");
+    }
+
+    // ===== Business Logic =====
+    function sumPayments(student){
+      return (student.payments || []).reduce((a,p)=> a + parseNum(p.amount), 0);
+    }
+
+    function calcOutstanding(student){
+      const type = student.type;
+      const paid = sumPayments(student);
+      if(type === "course"){
+        const fee = parseNum(student.courseFee);
+        const due = Math.max(0, fee - paid);
+        return due;
+      } else {
+        const monthlyFee = parseNum(student.monthlyFee);
+        const dueCount = Math.max(0, parseNum(student.monthlyDueCount));
+        const expected = monthlyFee * dueCount;
+        return Math.max(0, expected - paid);
+      }
+    }
+
+    function statusBadge(student){
+      if(student.status === "inactive"){
+        return `<span class="badge"><span class="dot" style="background: var(--bad)"></span>Inactive</span>`;
+      }
+      return `<span class="badge"><span class="dot" style="background: var(--good)"></span>Active</span>`;
+    }
+
+    function typeBadge(student){
+      const label = student.type === "course" ? "Course" : "Monthly";
+      const c = student.type === "course" ? "rgba(6,182,212,.95)" : "rgba(124,58,237,.95)";
+      return `<span class="badge"><span class="dot" style="background:${c}"></span>${label}</span>`;
+    }
+
+    // ===== App State =====
+    let db = loadDB();
+    let page = 1;
+    let selected = new Set();
+    let detailsStudentUid = null;
+
+    // ===== Rendering (READ Operation) =====
+    function filteredStudents(){
+      const q = $("qSearch").value.trim().toLowerCase();
+      const st = $("qStatus").value;
+      const ty = $("qType").value;
+      const due = $("qDue").value;
+
+      let arr = [...db.students];
+
+      if(st !== "all") arr = arr.filter(s => (s.status || "active") === st);
+      if(ty !== "all") arr = arr.filter(s => s.type === ty);
+      if(q){
+        arr = arr.filter(s => {
+          const blob = [s.name, s.studentId, s.mobile, s.session, s.examYear, s.notes, s.admissionDate].join(" ").toLowerCase();
+          return blob.includes(q);
+        });
+      }
+      if(due !== "all"){
+        arr = arr.filter(s => {
+          const o = calcOutstanding(s);
+          return due === "due" ? o > 0 : o <= 0;
+        });
+      }
+
+      const sort = $("qSort").value;
+      if(sort === "recent") arr.sort((a,b)=> (new Date(b.createdAt||0)) - (new Date(a.createdAt||0)));
+      else if(sort === "name") arr.sort((a,b)=> (a.name||"").localeCompare(b.name||""));
+      else if(sort === "dueDesc") arr.sort((a,b)=> calcOutstanding(b) - calcOutstanding(a));
+      else if(sort === "idAsc") arr.sort((a,b)=> (a.studentId||"").localeCompare(b.studentId||""));
+
+      return arr;
+    }
+
+    function renderKPIs(){
+      const total = db.students.length;
+      const active = db.students.filter(s => (s.status||"active")==="active").length;
+      const inactive = total - active;
+      const outstanding = db.students.reduce((a,s)=> a + calcOutstanding(s), 0);
+
+      const now = new Date();
+      const paid30 = db.students.reduce((a,s)=>{
+        const ps = (s.payments||[]).filter(p => {
+          const d = p.date || p.createdAt || null;
+          if(!d) return false;
+          return (now - new Date(d)) / (1000*60*60*24) <= 30;
+        }).reduce((x,p)=> x + parseNum(p.amount), 0);
+        return a + ps;
+      },0);
+
+      $("kpiActive").textContent = active;
+      $("kpiTotal").textContent = `/ ${total} total`;
+      $("kpiInactive").textContent = inactive;
+      $("kpiOutstanding").textContent = money(outstanding);
+      $("kpiPaid30").textContent = money(paid30);
+      const pct = total ? Math.round(active/total*100) : 0;
+      $("barActive").style.width = pct + "%";
+    }
+
+    function renderTable(){
+      const arr = filteredStudents();
+      const size = parseInt($("pageSize").value, 10);
+      const pages = Math.max(1, Math.ceil(arr.length / size));
+      page = Math.min(page, pages);
+      const start = (page-1)*size;
+      const chunk = arr.slice(start, start+size);
+
+      $("resultCount").textContent = `${arr.length} student${arr.length===1?"":"s"} • Updated ${(() => {
+        const meta = loadMeta();
+        if(!meta?.updatedAt) return "—";
+        return new Date(meta.updatedAt).toLocaleString();
+      })()}`;
+      $("pageInfo").textContent = `Page ${page} / ${pages}`;
+
+      const uidSet = new Set(db.students.map(s=>s.uid));
+      selected = new Set([...selected].filter(u => uidSet.has(u)));
+
+      const tbody = $("tbody");
+      tbody.innerHTML = chunk.map(s => {
+        const out = calcOutstanding(s);
+        const outColor = out > 0 ? "text-amber-200" : "text-emerald-200";
+        const dueLabel = out > 0 ? `<span class="badge"><span class="dot" style="background: var(--warn)"></span>Due</span>` : `<span class="badge"><span class="dot" style="background: var(--good)"></span>Clear</span>`;
+        const inactiveNote = s.status === "inactive" ? `<div class="muted2 text-xs mt-1">Left: ${escapeHtml(s.inactive?.date || "—")} • ${escapeHtml(s.inactive?.reason || "")}</div>` : "";
+        const typeMeta = s.type === "course"
+          ? `Course fee ${money(s.courseFee)}`
+          : `Monthly ${money(s.monthlyFee)} • Due ${parseNum(s.monthlyDueCount)} mo`;
+
+        return `
+          <tr>
+            <td>
+              <input data-chk="${escapeHtml(s.uid)}" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-white/10 align-middle" ${selected.has(s.uid)?"checked":""} />
+            </td>
+            <td>
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <div class="font-semibold">${escapeHtml(s.name || "")}</div>
+                  <div class="muted text-xs mt-1">${escapeHtml(s.studentId || "")}</div>
+                </div>
+                <div class="flex flex-col items-end gap-1">
+                  ${typeBadge(s)}
+                  ${dueLabel}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="text-sm">
+                <div><span class="muted">Mobile:</span> <span class="font-medium">${escapeHtml(s.mobile || "")}</span></div>
+                <div class="mt-1"><span class="muted">Admission:</span> <span class="font-medium">${escapeHtml(s.admissionDate || "")}</span></div>
+                <div class="mt-1"><span class="muted">Session:</span> <span class="font-medium">${escapeHtml(s.session || "—")}</span></div>
+                <div class="mt-1"><span class="muted">Exam:</span> <span class="font-medium">${escapeHtml(s.examYear || "—")}</span></div>
+              </div>
+            </td>
+            <td>
+              <div class="text-sm">
+                <div class="font-medium">${escapeHtml(typeMeta)}</div>
+                <div class="muted2 text-xs mt-1">Paid: ${money(sumPayments(s))}</div>
+                <div class="muted2 text-xs mt-1">${escapeHtml((s.payments||[]).length)} payment(s)</div>
+              </div>
+            </td>
+            <td>
+              <div class="text-lg font-semibold ${outColor}">${money(out)}</div>
+              <div class="muted2 text-xs mt-1">${out > 0 ? 'Has Dues' : 'Clear'}</div>
+            </td>
+            <td>
+              ${statusBadge(s)}
+              ${inactiveNote}
+            </td>
+            <td>
+              <div class="flex flex-wrap gap-2">
+                <button class="btn px-3 py-2 rounded-xl text-sm" data-action="details" data-uid="${escapeHtml(s.uid)}">Details</button>
+                <button class="btn btnPrimary px-3 py-2 rounded-xl text-sm" data-action="edit" data-uid="${escapeHtml(s.uid)}">Edit</button>
+                <button class="btn btnGood px-3 py-2 rounded-xl text-sm" data-action="pay" data-uid="${escapeHtml(s.uid)}">Pay</button>
+                <button class="btn px-3 py-2 rounded-xl text-sm" data-action="toggle" data-uid="${escapeHtml(s.uid)}">${s.status==="inactive"?"Set Active":"Mark Left"}</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      const visibleUids = chunk.map(s=>s.uid);
+      $("chkAll").checked = visibleUids.length>0 && visibleUids.every(u => selected.has(u));
+    }
+
+    function rerender(){
+      renderKPIs();
+      renderTable();
+    }
+
+    // ===== Modals & Forms (CREATE & UPDATE) =====
+    function openModal(bgEl){
+      bgEl.style.display = "flex";
+      document.body.style.overflow = "hidden";
+    }
+    function closeModal(bgEl){
+      bgEl.style.display = "none";
+      document.body.style.overflow = "";
+    }
+
+    function syncTypeFields(){
+      const type = $("f_type").value;
+      $("previewType").textContent = type === "course" ? "Course" : "Monthly";
+      const isCourse = type === "course";
+      $("wrapCourseFee").classList.toggle("hidden", !isCourse);
+      $("wrapCoursePaid").classList.toggle("hidden", !isCourse);
+      $("wrapMonthlyFee").classList.toggle("hidden", isCourse);
+      $("wrapMonthlyDueCount").classList.toggle("hidden", isCourse);
+      if(isCourse){
+        $("f_monthlyFee").value = "";
+        $("f_monthlyDueCount").value = "";
+      }else{
+        $("f_courseFee").value = "";
+        $("f_coursePaid").value = "";
+      }
+      updatePreviewOutstanding();
+    }
+
+    function updatePreviewOutstanding(){
+      const tmp = {
+        type: $("f_type").value,
+        monthlyFee: parseNum($("f_monthlyFee").value),
+        monthlyDueCount: parseNum($("f_monthlyDueCount").value),
+        courseFee: parseNum($("f_courseFee").value),
+        payments: []
+      };
+      const init = parseNum($("f_initialPay").value);
+      if(init > 0) tmp.payments.push({ amount: init });
+      else if($("f_type").value === "course"){
+        const coursePaid = parseNum($("f_coursePaid").value);
+        if(coursePaid > 0) tmp.payments.push({ amount: coursePaid });
+      }
+      $("previewOutstanding").textContent = money(calcOutstanding(tmp));
+    }
+
+    function resetStudentForm(){
+      $("studentModalTitle").textContent = "New Admission";
+      $("f_id").value = "";
+      $("f_admissionDate").value = todayStr();
+      $("f_name").value = "";
+      $("f_mobile").value = "";
+      $("f_session").value = "";
+      $("f_examYear").value = "";
+      $("f_type").value = "monthly";
+      $("f_monthlyFee").value = "";
+      $("f_monthlyDueCount").value = "0";
+      $("f_courseFee").value = "";
+      $("f_coursePaid").value = "";
+      $("f_notes").value = "";
+      $("f_initialPay").value = "0";
+      $("f_initialMethod").value = "Cash";
+      $("f_initialRef").value = "";
+      $("previewStatus").textContent = "Active";
+      $("btnStudentDelete").classList.add("hidden");
+      
+      const sid = nextStudentPublicId(db, $("f_admissionDate").value);
+      $("f_studentId").value = sid;
+      syncTypeFields();
+      updatePreviewOutstanding();
+    }
+
+    function openNewStudent(){
+      resetStudentForm();
+      openModal($("modalStudentBg"));
+      $("f_name").focus();
+    }
+
+    function openEditStudent(uidVal){
+      const s = db.students.find(x=>x.uid===uidVal);
+      if(!s) return;
+      $("studentModalTitle").textContent = "Edit Student";
+      $("f_id").value = s.uid;
+      $("f_admissionDate").value = s.admissionDate || todayStr();
+      $("f_name").value = s.name || "";
+      $("f_mobile").value = s.mobile || "";
+      $("f_session").value = s.session || "";
+      $("f_examYear").value = s.examYear || "";
+      $("f_type").value = s.type || "monthly";
+      $("f_studentId").value = s.studentId || "";
+      $("f_monthlyFee").value = s.monthlyFee ?? "";
+      $("f_monthlyDueCount").value = s.monthlyDueCount ?? "0";
+      $("f_courseFee").value = s.courseFee ?? "";
+      $("f_coursePaid").value = ""; 
+      $("f_notes").value = s.notes || "";
+      $("f_initialPay").value = "0";
+      $("f_initialMethod").value = "Cash";
+      $("f_initialRef").value = "";
+      $("previewStatus").textContent = (s.status||"active")==="active" ? "Active" : "Inactive";
+      $("btnStudentDelete").classList.remove("hidden");
+
+      syncTypeFields();
+      updatePreviewOutstanding();
+      openModal($("modalStudentBg"));
+      $("f_name").focus();
+    }
+
+    // === Form Submit (CREATE & UPDATE Logic) ===
+    $("studentForm").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const editUid = $("f_id").value.trim(); // If exists, it's UPDATE, else CREATE
+      const isEdit = !!editUid;
+
+      const admissionDate = $("f_admissionDate").value || todayStr();
+      const type = $("f_type").value;
+
+      const name = $("f_name").value.trim();
+      const mobile = $("f_mobile").value.trim();
+
+      if(!name || !mobile){
+        toast("Name and mobile are required.", "warn");
+        return;
+      }
+
+      let student = isEdit ? db.students.find(s=>s.uid===editUid) : null;
+      if(isEdit && !student){
+        toast("Student not found.", "bad");
+        return;
+      }
+
+      const nowIso = new Date().toISOString();
+      const notes = $("f_notes").value || "";
+
+      if(!isEdit){
+        // --- CREATE LOGIC ---
+        const studentId = $("f_studentId").value || nextStudentPublicId(db, admissionDate);
+        student = {
+          uid: uid(),
+          studentId,
+          admissionDate,
+          name,
+          mobile,
+          session: $("f_session").value.trim(),
+          examYear: $("f_examYear").value.trim(),
+          type,
+          monthlyFee: 0,
+          monthlyDueCount: 0,
+          courseFee: 0,
+          status: "active",
+          inactive: null,
+          notes,
+          payments: [],
+          createdAt: nowIso,
+          updatedAt: nowIso
+        };
+        if(type==="course"){
+          student.courseFee = parseNum($("f_courseFee").value);
+        } else {
+          student.monthlyFee = parseNum($("f_monthlyFee").value);
+          student.monthlyDueCount = Math.max(0, parseNum($("f_monthlyDueCount").value));
+        }
+
+        const initPay = parseNum($("f_initialPay").value);
+        const method = $("f_initialMethod").value;
+        const ref = $("f_initialRef").value.trim();
+        const coursePaid = parseNum($("f_coursePaid").value);
+
+        const amount = initPay > 0 ? initPay : (type==="course" && coursePaid>0 ? coursePaid : 0);
+        if(amount > 0){
+          student.payments.push({
+            pid: "p_" + Math.random().toString(16).slice(2),
+            date: admissionDate,
+            method, ref, amount,
+            createdAt: nowIso
+          });
+        }
+
+        db.students.unshift(student);
+        saveDB(db);
+        toast("New admission saved.", "good");
+      } else {
+        // --- UPDATE LOGIC ---
+        student.admissionDate = admissionDate;
+        student.name = name;
+        student.mobile = mobile;
+        student.session = $("f_session").value.trim();
+        student.examYear = $("f_examYear").value.trim();
+        student.type = type;
+        student.notes = notes;
+
+        if(type==="course"){
+          student.courseFee = parseNum($("f_courseFee").value);
+          student.monthlyFee = 0;
+          student.monthlyDueCount = 0;
+        } else {
+          student.monthlyFee = parseNum($("f_monthlyFee").value);
+          student.monthlyDueCount = Math.max(0, parseNum($("f_monthlyDueCount").value));
+          student.courseFee = 0;
+        }
+
+        const initPay = parseNum($("f_initialPay").value);
+        if(initPay > 0){
+          student.payments = student.payments || [];
+          student.payments.push({
+            pid: "p_" + Math.random().toString(16).slice(2),
+            date: todayStr(),
+            method: $("f_initialMethod").value,
+            ref: $("f_initialRef").value.trim(),
+            amount: initPay,
+            createdAt: nowIso
+          });
+        }
+
+        student.updatedAt = nowIso;
+        saveDB(db);
+        toast("Student updated.", "good");
+      }
+
+      closeModal($("modalStudentBg"));
+      rerender();
+    });
+
+    // === DELETE LOGIC ===
+    $("btnStudentDelete").addEventListener("click", ()=>{
+      const editUid = $("f_id").value.trim();
+      if(!editUid) return;
+      const s = db.students.find(x=>x.uid===editUid);
+      if(!s) return;
+      if(!confirm(`Delete ${s.name} (${s.studentId})? This cannot be undone.`)) return;
+      
+      // Filter out the student from array
+      db.students = db.students.filter(x=>x.uid!==editUid);
+      selected.delete(editUid);
+      saveDB(db);
+      toast("Student deleted.", "good");
+      closeModal($("modalStudentBg"));
+      rerender();
+    });
+
+    // ===== Payment Handling =====
+    function openPaymentModal(uids){
+      const uniq = [...new Set(uids)].filter(Boolean);
+      if(uniq.length === 0){ toast("Select at least one student.", "warn"); return; }
+      
+      const activeSelected = uniq.filter(u => {
+        const s = db.students.find(x=>x.uid===u);
+        return s && (s.status||"active")==="active";
+      });
+      if(activeSelected.length === 0){
+        toast("Selected students are inactive.", "warn");
+        return;
+      }
+
+      const names = activeSelected.map(u=>{
+        const s = db.students.find(x=>x.uid===u);
+        return `${escapeHtml(s.name || "")} <span class="muted2">(${escapeHtml(s.studentId||"")})</span>`;
+      });
+      $("paySelectedList").innerHTML = `<ul class="list-disc ml-5 space-y-1">${names.map(n=>`<li>${n}</li>`).join("")}</ul>`;
+      $("p_date").value = todayStr();
+      $("p_method").value = "Cash";
+      $("p_amount").value = "";
+      $("p_ref").value = "";
+      $("payForm").dataset.uids = JSON.stringify(activeSelected);
+      openModal($("modalPayBg"));
+      $("p_amount").focus();
+    }
+
+    $("payForm").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const uids = JSON.parse($("payForm").dataset.uids || "[]");
+      const date = $("p_date").value || todayStr();
+      const method = $("p_method").value;
+      const amount = parseNum($("p_amount").value);
+      const ref = $("p_ref").value.trim();
+
+      if(amount <= 0){ toast("Enter valid amount.", "warn"); return; }
+
+      const nowIso = new Date().toISOString();
+      let count = 0;
+      uids.forEach(u=>{
+        const s = db.students.find(x=>x.uid===u);
+        if(!s || (s.status||"active")!=="active") return;
+        s.payments = s.payments || [];
+        s.payments.push({
+          pid: "p_" + Math.random().toString(16).slice(2),
+          date, method, ref, amount, createdAt: nowIso
+        });
+        s.updatedAt = nowIso;
+        count++;
+      });
+
+      saveDB(db);
+      toast(`Payment saved for ${count} student(s).`, "good");
+      closeModal($("modalPayBg"));
+      rerender();
+      if(detailsStudentUid && uids.includes(detailsStudentUid)) openDetails(detailsStudentUid);
+    });
+
+    // ===== Details & Status Toggling =====
+    function openInactiveModal(uidVal){
+      const s = db.students.find(x=>x.uid===uidVal);
+      if(!s) return;
+      $("i_studentId").value = uidVal;
+      $("i_date").value = todayStr();
+      $("i_reason").value = "Left";
+      $("i_details").value = "";
+      openModal($("modalInactiveBg"));
+    }
+
+    function openDetails(uidVal){
+      const s = db.students.find(x=>x.uid===uidVal);
+      if(!s) return;
+      detailsStudentUid = uidVal;
+
+      $("detailsTitle").textContent = s.name || "Student Details";
+      $("detailsSubtitle").textContent = `${s.studentId || ""} • ${s.mobile || ""}`;
+      $("d_name").textContent = s.name || "—";
+      $("d_sid").textContent = s.studentId || "—";
+      $("d_mobile").textContent = s.mobile || "—";
+      $("d_adm").textContent = s.admissionDate || "—";
+      $("d_session").textContent = s.session || "—";
+      $("d_exam").textContent = s.examYear || "—";
+      $("d_type").textContent = s.type === "course" ? "Course" : "Monthly";
+      $("d_status").textContent = (s.status||"active")==="active" ? "Active" : "Inactive";
+
+      const out = calcOutstanding(s);
+      $("d_outstanding").textContent = money(out);
+      $("d_dueMeta").textContent = `Total Paid: ${money(sumPayments(s))}`;
+
+      const inactive = s.inactive || null;
+      $("inactiveBox").classList.toggle("hidden", !inactive || (s.status||"active")==="active");
+      if(inactive){
+        $("d_inactive").textContent = `${inactive.date || "—"} • ${inactive.reason || "—"}`;
+        $("d_inactiveReason").textContent = inactive.details || "";
+      }
+
+      $("btnAddDueForThis").classList.toggle("hidden", s.type !== "monthly");
+      $("btnDetailsToggleStatus").textContent = (s.status||"active")==="active" ? "Mark Left" : "Set Active";
+      $("d_notes").textContent = s.notes || "—";
+
+      const ps = [...(s.payments||[])].sort((a,b)=> new Date(b.date||b.createdAt||0) - new Date(a.date||a.createdAt||0));
+      $("paymentsTbody").innerHTML = ps.length ? ps.map(p => `
+        <tr>
+          <td>${escapeHtml(p.date || "")}</td>
+          <td>${escapeHtml(p.method || "")}</td>
+          <td class="muted2">${escapeHtml(p.ref || "")}</td>
+          <td class="text-right font-semibold">${money(p.amount)}</td>
+          <td>
+            <button class="btn btnDanger px-3 py-2 rounded-xl text-sm" data-paydel="${escapeHtml(p.pid)}">Delete</button>
+          </td>
+        </tr>
+      `).join("") : `<tr><td colspan="5" class="muted text-sm">No payments yet.</td></tr>`;
+
+      openModal($("modalDetailsBg"));
+    }
+
+    // ===== Event Listeners & Initialization =====
+    window.addEventListener("keydown", (e)=>{
+      if((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); $("qSearch").focus(); }
+      if(e.key === "Escape") [$("modalStudentBg"), $("modalPayBg"), $("modalDetailsBg"), $("modalInactiveBg")].forEach(bg=>{ if(bg.style.display === "flex") closeModal(bg); });
+    });
+
+    $("btnQuickAdd").addEventListener("click", openNewStudent);
+    $("btnCloseStudentModal").addEventListener("click", ()=> closeModal($("modalStudentBg")));
+    $("btnClosePayModal").addEventListener("click", ()=> closeModal($("modalPayBg")));
+    $("btnCloseDetails").addEventListener("click", ()=> closeModal($("modalDetailsBg")));
+    $("btnCloseInactive").addEventListener("click", ()=> closeModal($("modalInactiveBg")));
+
+    ["modalStudentBg","modalPayBg","modalDetailsBg","modalInactiveBg"].forEach(id=>{
+      $(id).addEventListener("click", (e)=>{ if(e.target === $(id)) closeModal($(id)); });
+    });
+
+    ["qSearch","qStatus","qType","qDue","qSort","pageSize"].forEach(id=>{
+      $(id).addEventListener("input", ()=>{ page = 1; rerender(); });
+      $(id).addEventListener("change", ()=>{ page = 1; rerender(); });
+    });
+
+    $("btnPrev").addEventListener("click", ()=>{ page = Math.max(1, page-1); renderTable(); });
+    $("btnNext").addEventListener("click", ()=>{
+      const arr = filteredStudents();
+      const size = parseInt($("pageSize").value, 10);
+      const pages = Math.max(1, Math.ceil(arr.length / size));
+      page = Math.min(pages, page+1);
+      renderTable();
+    });
+
+    $("chkAll").addEventListener("change", (e)=>{
+      const arr = filteredStudents();
+      const size = parseInt($("pageSize").value, 10);
+      const start = (page-1)*size;
+      const chunk = arr.slice(start, start+size);
+      if(e.target.checked) chunk.forEach(s=> selected.add(s.uid));
+      else chunk.forEach(s=> selected.delete(s.uid));
+      renderTable();
+    });
+
+    const tbody = $("tbody");
+    tbody.addEventListener("change", (e)=>{
+      const t = e.target;
+      if(t && t.matches("input[type='checkbox'][data-chk]")){
+        const id = t.getAttribute("data-chk");
+        if(t.checked) selected.add(id); else selected.delete(id);
+      }
+    });
+
+    tbody.addEventListener("click", (e)=>{
+      const btn = e.target.closest("button[data-action]");
+      if(!btn) return;
+      const action = btn.getAttribute("data-action");
+      const uidVal = btn.getAttribute("data-uid");
+      if(action==="edit") openEditStudent(uidVal);
+      if(action==="details") openDetails(uidVal);
+      if(action==="pay") openPaymentModal([uidVal]);
+      if(action==="toggle"){
+        const s = db.students.find(x=>x.uid===uidVal);
+        if(!s) return;
+        if((s.status||"active")==="active") openInactiveModal(uidVal);
+        else {
+          s.status = "active";
+          s.inactive = null;
+          s.updatedAt = new Date().toISOString();
+          saveDB(db);
+          toast("Student set to Active.", "good");
+          rerender();
+        }
+      }
+    });
+
+    $("btnPaySelected").addEventListener("click", ()=> openPaymentModal([...selected]));
+    
+    $("btnMarkMonth").addEventListener("click", ()=>{
+      if(!confirm("Add +1 monthly due for ALL ACTIVE monthly students?")) return;
+      const activeMonthly = db.students.filter(s => (s.status||"active")==="active" && s.type==="monthly");
+      activeMonthly.forEach(s => {
+        s.monthlyDueCount = parseNum(s.monthlyDueCount) + 1;
+        s.updatedAt = new Date().toISOString();
+      });
+      saveDB(db);
+      toast(`Added due for ${activeMonthly.length} students.`, "good");
+      rerender();
+    });
+
+    $("f_type").addEventListener("change", syncTypeFields);
+    ["f_monthlyFee","f_monthlyDueCount","f_courseFee","f_coursePaid","f_initialPay"].forEach(id=>{ $(id).addEventListener("input", updatePreviewOutstanding); });
+    $("f_admissionDate").addEventListener("change", ()=>{
+      if(!$("f_id").value) $("f_studentId").value = nextStudentPublicId(db, $("f_admissionDate").value);
+    });
+
+    // Details Actions
+    $("btnDetailsEdit").addEventListener("click", ()=>{ if(detailsStudentUid){ closeModal($("modalDetailsBg")); openEditStudent(detailsStudentUid); }});
+    $("btnDetailsPay").addEventListener("click", ()=>{ if(detailsStudentUid) openPaymentModal([detailsStudentUid]); });
+    $("btnDetailsToggleStatus").addEventListener("click", ()=>{
+      if(!detailsStudentUid) return;
+      const s = db.students.find(x=>x.uid===detailsStudentUid);
+      if(!s) return;
+      if((s.status||"active")==="active") openInactiveModal(detailsStudentUid);
+      else {
+        s.status = "active"; s.inactive = null; s.updatedAt = new Date().toISOString();
+        saveDB(db); toast("Student set to Active.", "good"); rerender(); openDetails(detailsStudentUid);
+      }
+    });
+    $("btnAddDueForThis").addEventListener("click", ()=>{
+      if(!detailsStudentUid) return;
+      const s = db.students.find(x=>x.uid===detailsStudentUid);
+      if(s && s.type==="monthly" && (s.status||"active")==="active"){
+        s.monthlyDueCount = parseNum(s.monthlyDueCount) + 1;
+        s.updatedAt = new Date().toISOString();
+        saveDB(db); toast("Due added.", "good"); openDetails(detailsStudentUid); rerender();
+      }
+    });
+
+    $("paymentsTbody").addEventListener("click", (e)=>{
+      const btn = e.target.closest("button[data-paydel]");
+      if(!btn || !detailsStudentUid) return;
+      const pid = btn.getAttribute("data-paydel");
+      const s = db.students.find(x=>x.uid===detailsStudentUid);
+      if(!s || !confirm("Delete payment?")) return;
+      s.payments = (s.payments||[]).filter(p => p.pid !== pid);
+      s.updatedAt = new Date().toISOString();
+      saveDB(db);
+      toast("Payment deleted.", "good");
+      rerender();
+      openDetails(detailsStudentUid);
+    });
+
+    $("inactiveForm").addEventListener("submit", (e)=>{
+      e.preventDefault();
+      const uidVal = $("i_studentId").value;
+      const s = db.students.find(x=>x.uid===uidVal);
+      if(!s) return;
+      s.status = "inactive";
+      s.inactive = {
+        date: $("i_date").value || todayStr(),
+        reason: $("i_reason").value,
+        details: $("i_details").value.trim()
+      };
+      s.updatedAt = new Date().toISOString();
+      saveDB(db);
+      toast("Marked as inactive.", "good");
+      closeModal($("modalInactiveBg"));
+      rerender();
+      if(detailsStudentUid === uidVal) openDetails(uidVal);
+    });
+
+    // Export / Import / Reset
+    $("btnExport").addEventListener("click", ()=>{
+      const payload = JSON.stringify(db, null, 2);
+      const blob = new Blob([payload], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ict-dashboard-backup-${todayStr()}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+      toast("Exported JSON.", "good");
+    });
+
+    $("fileImport").addEventListener("change", async (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      try{
+        const text = await file.text();
+        const obj = JSON.parse(text);
+        if(!obj || !Array.isArray(obj.students)) throw new Error("Invalid file.");
+        // Basic data sanitization
+        obj.students = obj.students.map(s => ({
+          uid: s.uid || uid(),
+          studentId: s.studentId || "",
+          admissionDate: s.admissionDate || todayStr(),
+          name: s.name || "", mobile: s.mobile || "",
+          session: s.session || "", examYear: s.examYear || "",
+          type: s.type === "course" ? "course" : "monthly",
+          monthlyFee: parseNum(s.monthlyFee),
+          monthlyDueCount: Math.max(0, parseNum(s.monthlyDueCount)),
+          courseFee: parseNum(s.courseFee),
+          status: (s.status === "inactive") ? "inactive" : "active",
+          inactive: s.inactive || null, notes: s.notes || "",
+          payments: Array.isArray(s.payments) ? s.payments.map(p => ({
+            pid: p.pid || ("p_" + Math.random().toString(16).slice(2)),
+            date: p.date || todayStr(), method: p.method || "Cash",
+            ref: p.ref || "", amount: parseNum(p.amount),
+            createdAt: p.createdAt || new Date().toISOString()
+          })) : [],
+          createdAt: s.createdAt || new Date().toISOString(),
+          updatedAt: s.updatedAt || new Date().toISOString()
+        }));
+        db = obj;
+        selected.clear();
+        saveDB(db);
+        toast("Import successful.", "good");
+        rerender();
+      } catch(err){
+        toast("Import failed: " + (err?.message || "Unknown error"), "bad");
+      } finally { e.target.value = ""; }
+    });
+
+    $("btnReset").addEventListener("click", ()=>{
+      if(!confirm("Reset all data? This cannot be undone.")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(META_KEY);
+      db = { students: [] };
+      selected.clear();
+      page = 1;
+      toast("Data reset.", "good");
+      rerender();
+    });
+
+    // Initialize
+    $("f_admissionDate").value = todayStr();
+    $("p_date").value = todayStr();
+    rerender();
+  </script>
+</body>
+</html>
