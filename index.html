@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -684,35 +685,78 @@
       return Number.isFinite(n) ? n : 0;
     }
 
-    // ===== Storage & Data Layer =====
-    const STORAGE_KEY = "ict_dashboard_v1";
-    const META_KEY = "ict_dashboard_meta_v1";
+    // ===== Cloud Data Layer (Google Sheets) =====
+    // PASTE YOUR GOOGLE APPS SCRIPT URL BELOW
+    const API_URL = "https://script.google.com/macros/s/AKfycbzEvY0Be3si8jE47mwlCF0lGNgOjS5On2xMr_PvG6HFEO2GFRemdOg-WBX3de2ZFZcfUg/exec"; 
 
-    function loadDB(){
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if(!raw) return { students: [] };
-      try { return JSON.parse(raw); } catch { return { students: [] }; }
+    // Helper to show loading state
+    function toggleLoading(isLoading, msg="Loading...") {
+      const toastId = "loadingToast";
+      let t = $(toastId);
+      if (isLoading) {
+        if(!t) {
+          const wrap = $("toastWrap");
+          t = document.createElement("div");
+          t.id = toastId;
+          t.className = "toast";
+          t.innerHTML = `<div class="flex items-center gap-3"><div class="miniBar" style="width:20px"><div style="width:100%"></div></div><div class="text-sm blink">${msg}</div></div>`;
+          wrap.appendChild(t);
+        }
+      } else {
+        if(t) t.remove();
+      }
     }
-    function saveDB(db){
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(db));
-      localStorage.setItem(META_KEY, JSON.stringify({ updatedAt: new Date().toISOString() }));
+
+    // Load data from Google Sheet
+    async function loadDB() {
+      toggleLoading(true, "Syncing with Cloud...");
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        // Ensure data integrity
+        if(!data.students) data.students = [];
+        return data;
+      } catch (err) {
+        console.error(err);
+        toast("Failed to load data from cloud.", "bad");
+        return { students: [] };
+      } finally {
+        toggleLoading(false);
+      }
     }
+
+    // Save data to Google Sheet
+    // We use a debounce to prevent saving too frequently if you type fast
+    let saveTimeout = null;
+    function saveDB(currentDb) {
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        toggleLoading(true, "Saving changes...");
+        try {
+          // Send simple POST request
+          await fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors", // Standard mode for Google Script execution
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(currentDb)
+          });
+          // Update timestamp locally just for UI
+          localStorage.setItem(META_KEY, JSON.stringify({ updatedAt: new Date().toISOString() }));
+          toast("Saved to Cloud", "good");
+        } catch (err) {
+          console.error(err);
+          toast("Save failed! Check internet.", "bad");
+        } finally {
+          toggleLoading(false);
+        }
+      }, 1000); // Wait 1 second after last action before saving
+    }
+
+    // Keep meta for local UI display only
+    const META_KEY = "ict_dashboard_meta_v1";
     function loadMeta(){
       const raw = localStorage.getItem(META_KEY);
-      if(!raw) return null;
       try { return JSON.parse(raw); } catch { return null; }
-    }
-
-    function nextStudentPublicId(db, admissionDate){
-      const year = (admissionDate || todayStr()).slice(0,4);
-      const prefix = `ICT-${year}-`;
-      const existing = db.students
-        .map(s => s.studentId)
-        .filter(x => typeof x === "string" && x.startsWith(prefix))
-        .map(x => parseInt(x.replace(prefix,""), 10))
-        .filter(n => Number.isFinite(n));
-      const next = (existing.length ? Math.max(...existing) + 1 : 1);
-      return prefix + String(next).padStart(4,"0");
     }
 
     // ===== Business Logic =====
@@ -1470,7 +1514,13 @@
     // Initialize
     $("f_admissionDate").value = todayStr();
     $("p_date").value = todayStr();
-    rerender();
+    
+    // Initial Fetch
+    (async function initApp(){
+       // Overwrite the global 'db' variable with cloud data
+       db = await loadDB();
+       rerender();
+    })();
   </script>
 </body>
 </html>
