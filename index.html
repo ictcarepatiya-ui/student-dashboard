@@ -652,7 +652,36 @@
     };
     const todayStr = () => new Date().toISOString().slice(0,10);
     const uid = () => "s_" + Math.random().toString(16).slice(2) + Date.now().toString(16);
+function nextStudentPublicId(db, dateStr) {
+      if (!dateStr) dateStr = new Date().toISOString().slice(0, 10);
+      
+      // 1. Generate Prefix YYMM (e.g., 2501 for Jan 2025)
+      const d = new Date(dateStr);
+      const y = String(d.getFullYear()).slice(-2);
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const prefix = y + m;
 
+      // 2. Find the highest sequence number for this specific month
+      let maxSeq = 0;
+      if (db && Array.isArray(db.students)) {
+        db.students.forEach(s => {
+          if (s.studentId && s.studentId.toString().startsWith(prefix)) {
+            // Extract the number part after the prefix (e.g., 2501005 -> 5)
+            const seqStr = s.studentId.toString().slice(4);
+            const seq = parseInt(seqStr, 10);
+            if (!isNaN(seq) && seq > maxSeq) maxSeq = seq;
+          }
+        });
+      }
+
+      // 3. Increment and format (e.g., 2501006)
+      return prefix + String(maxSeq + 1).padStart(3, '0');
+    }
+    // ========================================
+
+    function toast(msg, type="info"){
+    // ... rest of your code ...
+      
     function toast(msg, type="info"){
       const wrap = $("toastWrap");
       const t = document.createElement("div");
@@ -1524,3 +1553,4 @@
   </script>
 </body>
 </html>
+
